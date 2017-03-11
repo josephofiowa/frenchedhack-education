@@ -15,17 +15,6 @@ Questions the judges will consider:
 - Did the group produce unique visulizations to demonstrate their advocacy?
 - Does the proposed redesign get to the core of why users struggle now, or is it simply an incremental improvement?
 
-
-## Data Visualization
-
-(0-5)
-
-Questions the judges will consider:
-
-- Are the visualizations easily interpretable?
-- Are the visualizations relevant to the recommendations the group has provided?
-- Are the visualizations interactive (bonus!)?
-
 ## Strategy
 
 (0-5)
