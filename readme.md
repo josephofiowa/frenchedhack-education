@@ -57,7 +57,7 @@ Joseph Nelson leads Data Science instruction at General Assembly.
 
 ## Workshops
 
-There will be one workshop today on "Creating Your Own Personal Site with Bootstrap" at 3:30/4:00 (depending on how the day goes). This workshop assumes you have zero background in web development. (How introductory? We will even begin with creating [assuring] Github accounts [exist] for both.)
+There will be one workshop today on "Webscraping" at 3:30. This workshop will be accessible even if you have no background in webscraping. The materials are available [here](https://github.com/josephofiowa/getting-data).
 
 ## Communication
 
