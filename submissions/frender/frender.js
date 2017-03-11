@@ -25,6 +25,7 @@ var twitterClient = new Twitter({
 
 // Stream filters by keywords
 var options = {track: 'french career, french teach, frenchedhack'};
+
 var search = "statuses/filter";
 
 twitterClient.stream(search, options, (stream) => {
@@ -50,6 +51,14 @@ twitterClient.stream(search, options, (stream) => {
 
     }
 
+    if (tweet.text.includes("frenchedhack")) {
+      console.log(tweet.user.screen_name + ": " + tweet.text);
+
+      replyFrenchEdHack(tweet)
+
+    }
+
+
   })
 });
 
@@ -70,6 +79,19 @@ function replyTeach(originalTweet){
   twitterClient.post("statuses/update/", {status: "@" + originalTweet.user.screen_name + ": We're looking for teachers in US French Immersion programs! Are you interested?? https://goo.gl/forms/lSDukJTlUd0UsLN92"}, function(err, response) {
     if (response) {
       console.log('reply teach successful: ' + response);
+    }
+    // if there was an error while tweeting
+    if (err) {
+      console.log('Something went wrong:' + err);
+    }
+  });
+}
+
+
+function replyFrenchEdHack(originalTweet){
+  twitterClient.post("statuses/update/", {status: "@" + originalTweet.user.screen_name + ": Thank you for coming to the 2017 French Ed Hack at @GA with the @franceintheus!"}, function(err, response) {
+    if (response) {
+      console.log('reply french ed hack successful: ' + response);
     }
     // if there was an error while tweeting
     if (err) {
