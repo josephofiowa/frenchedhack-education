@@ -1,0 +1,98 @@
+---
+title: "TAPIF Data cleaning and model building"
+author: "Yeshwant Chillakuru"
+date: "March 11, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+library(lmtest)
+library(sandwich)
+library(stargazer)
+
+# load TAPIF Data
+tapif0 <- read.csv("tapif2016.csv")
+
+```
+
+```{r datacleaning1}
+rm(tapif)
+# How did you originally hear about TAPIF
+tapif <- tapif0[, c("How.did.you.originally.hear.about.TAPIF.", "Column18", "Column19", "Column20", "Column21", "Column22", "Column23", "Column24", "Column25", "Why.did.you.want.to.work.as.an.em..Assistant.de.langue.en.France..em..through.TAPIF...choose.all.that.apply.", "Column26", "Column27", "Column28", "Column29", "Column30", "Column31", "Column32", "Column33", "Column34", "How.important.is.the.French.language.in.your.current.or.future.career.", "Column41")]
+
+oldNamesBinary <- c("How.did.you.originally.hear.about.TAPIF.", "Column18", "Column19", "Column20", "Column21", "Column22", "Column23", "Column24", "Column25", "Why.did.you.want.to.work.as.an.em..Assistant.de.langue.en.France..em..through.TAPIF...choose.all.that.apply.", "Column26", "Column27", "Column28", "Column29", "Column30", "Column31", "Column32", "Column33", "Column34", "Column41")
+
+for (name in oldNamesBinary) {
+  tapif[,name] <- ifelse(tapif[,name] == "", 0, 1 )
+}
+
+oldNamesOrdinal <- c("How.important.is.the.French.language.in.your.current.or.future.career.")
+
+#Reorder Ordered Variables from low(1) to high(4) and convert to numerical value
+tapif[,oldNamesOrdinal[1]] <- factor(tapif[,oldNamesOrdinal[1]], levels(tapif[,oldNamesOrdinal[1]])[c(1,3,4,5,2)])
+
+# [1] ""                                                                                    
+# [2] "Irrelevant - I never use French in my work"                                          
+# [3] "Not important right now, but... - I am seeking a career in which French is important"
+# [4] "Somewhat Important - I sometimes use French in my work"                              
+# [5] "Critically Important - French is central to my work"  
+
+tapif[,oldNamesOrdinal[1]] <- as.numeric(tapif[,oldNamesOrdinal[1]])
+
+
+tapif <- rename(tapif, hearAboutTAPIF.Uni=How.did.you.originally.hear.about.TAPIF., hearAboutTAPIF.TAPIFAlum=Column18, hearAboutTAPIF.friend=Column19, hearAboutTAPIF.frEmbWeb=Column20, hearAboutTAPIF.SocialMedia=Column21, hearAboutTAPIF.CampusFrance=Column22, hearAboutTAPIF.Magazine=Column23, hearAboutTAPIF.CareerFair=Column24, hearAboutTAPIF.other=Column25, WhyTAPIF.frenchTeachingCareer=Why.did.you.want.to.work.as.an.em..Assistant.de.langue.en.France..em..through.TAPIF...choose.all.that.apply., WhyTAPIF.teachingESL = Column26, WhyTAPIF.generalTeaching = Column27, WhyTAPIF.frenchCulture=Column28, WhyTAPIF.frenchLanguageSkills=Column29, WhyTAPIF.frenchInCareer=Column30, WhyTAPIF.liveInFranceST=Column31, WhyTAPIF.liveInFranceLT=Column32, WhyTAPIF.gapYear=Column33, WhyTAPIF.other=Column34, importanceOfFrenchLang=How.important.is.the.French.language.in.your.current.or.future.career., TAPIFChapter.jobOpp=Column41)
+
+  #TODO:
+     #Recode Column 25 responses as "other"
+  #IMPORTANT: Column21 is Have you heard of TAPIF via SocialMedia
+    #TAPIFChapter.jobOpp
+    ```
+
+
+```{r dataAnalysis1}
+uni <- sum(tapif$hearAboutTAPIF.Uni)
+alum <-sum(tapif$hearAboutTAPIF.TAPIFAlum)
+campusFrance <-sum(tapif$hearAboutTAPIF.CampusFrance)
+friend <-sum(tapif$hearAboutTAPIF.friend)
+FrenchEmbassyWebsite <- sum(tapif$hearAboutTAPIF.frEmbWeb)
+socialMedia <- sum(tapif$hearAboutTAPIF.SocialMedia)
+magazine <- sum(tapif$hearAboutTAPIF.Magazine)
+careerFair <- sum(tapif$hearAboutTAPIF.CareerFair)
+other <- sum(tapif$hearAboutTAPIF.other)
+
+answer <- c("Universities", "Alumni", "Campus France", "Friends", "French Embassy Website", "Social Media", "Magazines", "Career Fairs", "Other")
+
+freq <- c(uni, alum, campusFrance, friend, FrenchEmbassyWebsite, socialMedia, magazine, careerFair, other)
+
+hearAboutTapif <- data.frame(answer, freq)
+
+ggplot(data = hearAboutTapif, aes(x=answer, y=freq)) + geom_bar(stat="identity", fill=c("#0055A4")) + scale_x_discrete(limits=rev(c("Social Media", "French Embassy Website", "Universities", "Alumni", "Campus France", "Friends", "Magazines", "Career Fairs", "Other"))) + coord_flip() + ggtitle("How do people hear about TAPIF?") + ylab("Counts") + xlab("")
+```
+
+```{r dataAnalysis2}
+
+#Notes
+# Dependent Variable is the interest in teaching french as a career (WhyTAPIF.frenchTeachingCareer) or Interest in using French in a career (WhyTAPIF.frenchInCareer)
+## Independent Variables are hear about this via social media (hearAboutTAPIF.SocialMedia) and from French Embassy Website (hearAboutTAPIF.frEmbWeb)
+
+start <- which(colnames(tapif) == "hearAboutTAPIF.Uni")
+end <- which(colnames(tapif) == "hearAboutTAPIF.other")
+
+tapif.why <- tapif
+tapif.why[, start:end] <- NULL
+
+rm(start,end)
+
+lm1 <- lm(data=tapif.why, WhyTAPIF.frenchTeachingCareer ~ . -WhyTAPIF.frenchInCareer   )
+
+lm2 <- lm(data=tapif.why, WhyTAPIF.frenchInCareer ~ . -WhyTAPIF.frenchTeachingCareer   )
+
+stargazer(lm1, lm2, type = "text", title="Results")
+```
+
+
+
